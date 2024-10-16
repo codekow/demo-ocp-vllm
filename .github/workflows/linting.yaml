@@ -41,4 +41,4 @@ jobs:
       - name: Run hadolint
         uses: hadolint/hadolint-action@v3.1.0
         with:
-          dockerfile: src/Containerfile
+          dockerfile: src/Dockerfile

@@ -7,7 +7,7 @@ rules:
   new-line-at-end-of-file: enable
   indentation:
     indent-sequences: whatever
-    ignore: kludgeops/
+    ignore: |
   braces:
     min-spaces-inside: 0
     max-spaces-inside: 1
