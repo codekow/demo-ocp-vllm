@@ -1,0 +1,46 @@
+#!/bin/sh
+set -e
+
+usage(){
+  "${STI_SCRIPTS_PATH}/usage"
+}
+
+debug(){
+  echo "
+    This process is runing as $(id)
+    Path: $(pwd)
+  "
+}
+
+download_dataset(){
+  echo "
+    Embed an artifact inside your container for edge / disconnected use...
+    
+    Example: curl https://bulk.openweathermap.org/snapshot/{BULK_FILE_NAME}?appid={API key} > /data/weather.csv
+  "
+}
+
+restore_artifacts(){
+  # restore artifacts from a previous build (if they exist)
+
+  if [ "$(ls /tmp/artifacts/ 2>/dev/null)" ]; then
+    echo "---> Restoring build artifacts..."
+    mv /tmp/artifacts/* /opt/app-root/etc
+  fi
+}
+
+assemble_s2i_override(){
+  # handle other dependencies here
+  debug
+  download_dataset
+}
+
+assemble_s2i_default(){
+  echo "Resume default assemble"
+  /usr/libexec/s2i/assemble
+}
+
+usage
+assemble_s2i_override
+# restore_artifacts
+assemble_s2i_default
