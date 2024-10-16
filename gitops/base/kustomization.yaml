@@ -8,5 +8,5 @@ commonLabels:
 resources:
 - deployment.yaml
 - pvc.yaml
-- service.yaml
 - route.yaml
+- service.yaml
