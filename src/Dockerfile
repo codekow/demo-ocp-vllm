@@ -1,7 +1,11 @@
 # hadolint global ignore=DL3041,DL3013
 FROM registry.access.redhat.com/ubi9/python-311:1
 
-COPY requirements.txt vllm/requirements-common.txt vllm/requirements-cpu.txt /opt/app-root/src/
+COPY requirements.txt \
+     vllm/requirements-build.txt \
+     vllm/requirements-common.txt \
+     vllm/requirements-cpu.txt \
+     /opt/app-root/src/
 
 USER 0
 

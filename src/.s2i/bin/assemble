@@ -9,6 +9,19 @@ custom_assemble(){
   pip install --no-cache-dir -U pip && \
   pip install --no-cache-dir \
     -r requirements.txt
+
+  git clone -b rls-v3.5 https://github.com/oneapi-src/oneDNN.git oneDNN
+
+  cmake -B ./oneDNN/build -S ./oneDNN -G Ninja -DONEDNN_LIBRARY_TYPE=STATIC \
+    -DONEDNN_BUILD_DOC=OFF \
+    -DONEDNN_BUILD_EXAMPLES=OFF \
+    -DONEDNN_BUILD_TESTS=OFF \
+    -DONEDNN_BUILD_GRAPH=OFF \
+    -DONEDNN_ENABLE_WORKLOAD=INFERENCE \
+    -DONEDNN_ENABLE_PRIMITIVE=MATMUL && \
+    cmake --build ./oneDNN/build --target install --config Release
+
+    rm oneDNN -rf
 }
 
 debug(){
@@ -21,7 +34,7 @@ debug(){
 download_dataset(){
   echo "
     Embed an artifact inside your container for edge / disconnected use...
-    
+
     Example: curl https://bulk.openweathermap.org/snapshot/{BULK_FILE_NAME}?appid={API key} > /data/weather.csv
   "
 }
@@ -47,7 +60,7 @@ assemble_s2i_default(){
   /usr/libexec/s2i/assemble
 }
 
-usage
+# usage
 assemble_s2i_override
 # restore_artifacts
 assemble_s2i_default

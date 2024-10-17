@@ -21,7 +21,7 @@ run_s2i_override(){
   # want to do something custom before you start
   echo "
   These messages brought to you by bash.
-  
+
   Reticulating splines...
   "
 }

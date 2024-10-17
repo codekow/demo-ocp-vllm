@@ -1,5 +1,6 @@
 --extra-index-url https://download.pytorch.org/whl/cpu
 -r requirements-cpu.txt
+intel-openmp
 intel_extension_for_pytorch==2.4.0
 cmake>=3.26
 wheel
@@ -7,4 +8,3 @@ packaging
 ninja
 setuptools-scm>=8
 numpy
-vllm
