@@ -11,4 +11,4 @@ oc apply -k gitops/overlays/default
 ## Links
 
 - https://github.com/vllm-project/vllm
-- [vllm parms](https://docs.vllm.ai/en/latest/models/engine_args.html)
+- [vllm parameters](https://docs.vllm.ai/en/latest/models/engine_args.html)

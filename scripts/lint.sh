@@ -38,12 +38,12 @@ lint_spelling(){
 
 lint_scripts(){
   which shellcheck || return
-  find . -not \( -path '*/venv/*' -o -path '*/scratch/*' \) -name '*.sh'  -print0 | xargs -0 shellcheck
+  find . -not \( -path '*/venv/*' -o -path '*/scratch/*' -o -path '*/src/vllm/*' \) -name '*.sh'  -print0 | xargs -0 shellcheck
 }
 
 lint_dockerfiles(){
   which hadolint || return
-  find . -not -path "./scratch/*" \( -name Dockerfile -o -name Containerfile \) -exec hadolint {} \;
+  find . -not \( -path '*/scratch/*' -o -path '*/src/vllm/*' \) \( -name Dockerfile -o -name Containerfile \) -exec hadolint {} \;
 }
 
 lint_yaml(){
