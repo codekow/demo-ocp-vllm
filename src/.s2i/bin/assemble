@@ -1,0 +1,94 @@
+#!/bin/sh
+set -e
+
+usage(){
+  "${STI_SCRIPTS_PATH}/usage"
+}
+
+build_vllm(){
+  VLLM_CPU_DISABLE_AVX512=${VLLM_CPU_DISABLE_AVX512:-false}
+  VLLM_TAG=${VLLM_TAG:-v0.6.3}
+  VLLM_TARGET_DEVICE=${VLLM_TARGET_DEVICE:-cpu} \
+
+  git clone \
+    https://github.com/vllm-project/vllm.git && \
+  cd vllm && \
+  git checkout v0.6.3 && \
+  python3 setup.py bdist_wheel && \
+  pip install dist/*.whl && \
+  rm -rf dist
+}
+
+build_onednn(){
+  ONEDNN_TAG=${ONEDNN_TAG:-rls-v3.5}
+
+  git clone -b ${ONEDNN_TAG} https://github.com/oneapi-src/oneDNN.git oneDNN
+
+  cmake -S ./oneDNN \
+    -B ./oneDNN/build \
+    -G Ninja \
+    -DONEDNN_LIBRARY_TYPE=STATIC \
+    -DONEDNN_BUILD_DOC=OFF \
+    -DONEDNN_BUILD_EXAMPLES=OFF \
+    -DONEDNN_BUILD_TESTS=OFF \
+    -DONEDNN_BUILD_GRAPH=OFF \
+    -DONEDNN_ENABLE_WORKLOAD=INFERENCE \
+    -DONEDNN_ENABLE_PRIMITIVE=MATMUL
+
+  CMAKE_INSTALL_PREFIX=/opt/app-root
+  cmake --build ./oneDNN/build \
+    --target install \
+    --config Release
+
+  rm oneDNN -rf
+
+}
+
+custom_assemble(){
+  pip install --no-cache-dir -U pip && \
+  pip install --no-cache-dir \
+    -r requirements.txt
+  
+  build_vllm
+}
+
+debug(){
+  echo "
+    This process is runing as $(id)
+    Path: $(pwd)
+  "
+}
+
+download_dataset(){
+  echo "
+    Embed an artifact inside your container for edge / disconnected use...
+
+    Example: curl https://bulk.openweathermap.org/snapshot/{BULK_FILE_NAME}?appid={API key} > /data/weather.csv
+  "
+}
+
+restore_artifacts(){
+  # restore artifacts from a previous build (if they exist)
+
+  if [ "$(ls /tmp/artifacts/ 2>/dev/null)" ]; then
+    echo "---> Restoring build artifacts..."
+    mv /tmp/artifacts/* /opt/app-root/etc
+  fi
+}
+
+assemble_s2i_override(){
+  # handle other dependencies here
+  debug
+  download_dataset
+  custom_assemble && exit 0
+}
+
+assemble_s2i_default(){
+  echo "Resume default assemble"
+  /usr/libexec/s2i/assemble
+}
+
+# usage
+assemble_s2i_override
+# restore_artifacts
+assemble_s2i_default

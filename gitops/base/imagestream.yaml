@@ -1,0 +1,35 @@
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: python
+spec:
+  lookupPolicy:
+    local: true
+  tags:
+  - name: '1'
+    annotations:
+      openshift.io/imported-from: registry.access.redhat.com/ubi9/python-311:1
+    from:
+      kind: DockerImage
+      name: registry.access.redhat.com/ubi9/python-311:1
+    referencePolicy:
+      type: Local
+  - name: latest
+    from:
+      kind: ImageStreamTag
+      name: python:1
+    referencePolicy:
+      type: Local
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  name: vllm
+spec:
+  lookupPolicy:
+    local: true
+  tags:
+  - name: latest

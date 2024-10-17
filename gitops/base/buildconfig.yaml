@@ -1,0 +1,31 @@
+---
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  name: vllm
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  runPolicy: Serial
+  source:
+    git:
+      uri: https://github.com/codekow/demo-ocp-vllm.git
+      ref: dev
+    contextDir: src
+  strategy:
+    dockerStrategy:
+      # from:
+      #   kind: ImageStreamTag
+      #   name: s2i-generic-data-science-notebook:2023.1
+      dockerfilePath: Dockerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: vllm:latest
+  triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChange:
+        from:
+          kind: ImageStreamTag
+          name: python:3.11
