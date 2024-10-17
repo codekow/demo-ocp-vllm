@@ -7,6 +7,8 @@ metadata:
     deployment: vllm
   annotations:
     argocd.argoproj.io/sync-wave: "1"
+    image.openshift.io/triggers: >-
+      [{"from":{"kind":"ImageStreamTag","name":"vllm:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"vllm-server\")].image","paused":"true"}]
 spec:
   replicas: 1
   selector:
@@ -27,15 +29,19 @@ spec:
               value: ''
             - name: DOWNLOAD_MODEL
               value: ''
+            - name: VLLM_TARGET_DEVICE
+              value: cpu
           command:
           - /bin/bash
-          - -c |
-              python3 -m vllm.entrypoints.openai.api_server \
-              --model \
-              "${DOWNLOAD_MODEL:-TinyLlama/TinyLlama-1.1B-Chat-v1.0}" \
-              --download-dir /models-cache \
-              --max-model-len  "2048"
-          image: 'quay.io/rh-aiservices-bu/vllm-cpu-openai-ubi9:0.2'
+          - -c
+          - |
+            echo python3 -m vllm.entrypoints.openai.api_server \
+            --model \
+            "${DOWNLOAD_MODEL:-TinyLlama/TinyLlama-1.1B-Chat-v1.0}" \
+            --download-dir /models-cache \
+            --max-model-len  "2048"
+            python -m http.server 8080
+          image: 'vllm:latest'
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -48,40 +54,40 @@ spec:
             requests:
               cpu: '1'
               memory: 4Gi
-          startupProbe:
-            httpGet:
-              path: /health
-              port: http
-              scheme: HTTP
-            timeoutSeconds: 1
-            periodSeconds: 30
-            successThreshold: 1
-            failureThreshold: 10
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: http
-              scheme: HTTP
-            timeoutSeconds: 5
-            periodSeconds: 30
-            successThreshold: 1
-            failureThreshold: 3
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: http
-              scheme: HTTP
-            timeoutSeconds: 8
-            periodSeconds: 100
-            successThreshold: 1
-            failureThreshold: 3
+          # startupProbe:
+          #   httpGet:
+          #     path: /health
+          #     port: http
+          #     scheme: HTTP
+          #   timeoutSeconds: 1
+          #   periodSeconds: 30
+          #   successThreshold: 1
+          #   failureThreshold: 10
+          # readinessProbe:
+          #   httpGet:
+          #     path: /health
+          #     port: http
+          #     scheme: HTTP
+          #   timeoutSeconds: 5
+          #   periodSeconds: 30
+          #   successThreshold: 1
+          #   failureThreshold: 3
+          # livenessProbe:
+          #   httpGet:
+          #     path: /health
+          #     port: http
+          #     scheme: HTTP
+          #   timeoutSeconds: 8
+          #   periodSeconds: 100
+          #   successThreshold: 1
+          #   failureThreshold: 3
           volumeMounts:
             - name: models-cache
               mountPath: /models-cache
             - name: shm
               mountPath: /dev/shm
       volumes:
-        - name: vllm-cache
+        - name: models-cache
           persistentVolumeClaim:
             claimName: vllm-cache
         - name: shm

@@ -5,6 +5,12 @@ usage(){
   "${STI_SCRIPTS_PATH}/usage"
 }
 
+custom_assemble(){
+  pip install --no-cache-dir -U pip && \
+  pip install --no-cache-dir \
+    -r requirements.txt
+}
+
 debug(){
   echo "
     This process is runing as $(id)
@@ -33,6 +39,7 @@ assemble_s2i_override(){
   # handle other dependencies here
   debug
   download_dataset
+  custom_assemble
 }
 
 assemble_s2i_default(){

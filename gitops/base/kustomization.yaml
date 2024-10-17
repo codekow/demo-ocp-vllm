@@ -6,7 +6,9 @@ commonLabels:
   component: vllm
 
 resources:
+- buildconfig.yaml
 - deployment.yaml
+- imagestream.yaml
 - pvc.yaml
 - route.yaml
 - service.yaml
