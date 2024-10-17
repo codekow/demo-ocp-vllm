@@ -5,23 +5,51 @@ usage(){
   "${STI_SCRIPTS_PATH}/usage"
 }
 
-custom_assemble(){
-  pip install --no-cache-dir -U pip && \
-  pip install --no-cache-dir \
-    -r requirements.txt
+build_vllm(){
+  VLLM_CPU_DISABLE_AVX512=${VLLM_CPU_DISABLE_AVX512:-false}
+  VLLM_TAG=${VLLM_TAG:-v0.6.3}
+  VLLM_TARGET_DEVICE=${VLLM_TARGET_DEVICE:-cpu} \
 
-  git clone -b rls-v3.5 https://github.com/oneapi-src/oneDNN.git oneDNN
+  git clone \
+    https://github.com/vllm-project/vllm.git && \
+  cd vllm && \
+  git checkout v0.6.3 && \
+  python3 setup.py bdist_wheel && \
+  pip install dist/*.whl && \
+  rm -rf dist
+}
 
-  cmake -B ./oneDNN/build -S ./oneDNN -G Ninja -DONEDNN_LIBRARY_TYPE=STATIC \
+build_onednn(){
+  ONEDNN_TAG=${ONEDNN_TAG:-rls-v3.5}
+
+  git clone -b ${ONEDNN_TAG} https://github.com/oneapi-src/oneDNN.git oneDNN
+
+  cmake -S ./oneDNN \
+    -B ./oneDNN/build \
+    -G Ninja \
+    -DONEDNN_LIBRARY_TYPE=STATIC \
     -DONEDNN_BUILD_DOC=OFF \
     -DONEDNN_BUILD_EXAMPLES=OFF \
     -DONEDNN_BUILD_TESTS=OFF \
     -DONEDNN_BUILD_GRAPH=OFF \
     -DONEDNN_ENABLE_WORKLOAD=INFERENCE \
-    -DONEDNN_ENABLE_PRIMITIVE=MATMUL && \
-    cmake --build ./oneDNN/build --target install --config Release
+    -DONEDNN_ENABLE_PRIMITIVE=MATMUL
 
-    rm oneDNN -rf
+  CMAKE_INSTALL_PREFIX=/opt/app-root
+  cmake --build ./oneDNN/build \
+    --target install \
+    --config Release
+
+  rm oneDNN -rf
+
+}
+
+custom_assemble(){
+  pip install --no-cache-dir -U pip && \
+  pip install --no-cache-dir \
+    -r requirements.txt
+  
+  build_vllm
 }
 
 debug(){
