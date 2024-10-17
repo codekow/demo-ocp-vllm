@@ -39,7 +39,7 @@ assemble_s2i_override(){
   # handle other dependencies here
   debug
   download_dataset
-  custom_assemble
+  custom_assemble && exit 0
 }
 
 assemble_s2i_default(){
